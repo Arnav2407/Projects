@@ -20,29 +20,57 @@ function App() {
 		console.log("Delete button clicked");
 	}
 
-	const handleAdd = () => {
-		setTasks([...Tasks, {id: uuidv4(),Task, isCompleted: false}]);
-		setTask("");
-		console.log(Tasks);
-		LocalStorage();
-	}
+	const handleAdd = async () => {
+	if (!title.trim()) return;
+
+	setLoading(true);
+
+	await fetch("/api/tasks", {
+		method: "POST",
+		headers: {
+		"Content-Type": "application/json",
+		},
+		body: JSON.stringify({
+		title,
+		}),
+	});
+
+	setTitle("");
+
+	await fetchTasks();
+
+	setLoading(false);
+};
 
 	const handleChange = (e) => {
 		setTask(e.target.value);
 	}
 
-	const handleCheckbox = (e) => {
-		let id = e.target.name
-		let index = Tasks.findIndex(item=>{
-			return item.id === id
-		})
-		let newTasks = [...Tasks];
-		newTasks[index].isCompleted = !newTasks[index].isCompleted;
-		setTasks(newTasks);
-		LocalStorage();
-	}
+	const handleToggle = async (task: Task) => {
+  	await fetch(`/api/tasks/${task.id}`, {
+		method: "PATCH",
+		headers: {
+		"Content-Type": "application/json",
+		},
+		body: JSON.stringify({
+		completed: !task.completed,
+		}),
+	});
 
-  return (
+  await fetchTasks();
+};
+
+	const fetchTasks = async () => {
+	const res = await fetch("/api/tasks");
+	const data = await res.json();
+
+  	setTasks(data);
+	};
+
+useEffect(() => {
+  fetchTasks();
+}, []);
+return (
     <>
     <Navbar />
 			<div className="container mx-auto p-3 rounded-xl my-5 bg-violet-100 min-h-[80vh] min-w-[160vh]">
